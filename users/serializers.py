@@ -1,8 +1,8 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 from .models import User
 
 
-class TinyUserSerializer(ModelSerializer):
+class TinyUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
@@ -12,7 +12,7 @@ class TinyUserSerializer(ModelSerializer):
         )
 
 
-class PrivateUserSerializer(ModelSerializer):
+class PrivateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         exclude = (
@@ -26,3 +26,27 @@ class PrivateUserSerializer(ModelSerializer):
             "groups",
             "user_permissions",
         )
+
+
+class PublicUserSerializer(serializers.ModelSerializer):
+    rooms_count = serializers.SerializerMethodField()
+    reviews_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            "username",
+            "email",
+            "avatar",
+            "name",
+            "gender",
+            "username",
+            "rooms_count",
+            "reviews_count",
+        )
+
+    def get_rooms_count(self, user):
+        return user.rooms.count()
+
+    def get_reviews_count(self, user):
+        return user.reviews.count()

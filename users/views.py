@@ -5,6 +5,10 @@ from rest_framework.exceptions import ParseError, NotFound
 from rest_framework.permissions import IsAuthenticated
 from . import serializers
 from .models import User
+from rooms.models import Room
+from rooms.serializers import RoomListSerializer
+from reviews.models import Review
+from reviews.serializers import ReviewSerializer
 
 
 class Me(APIView):
@@ -52,7 +56,28 @@ class PublicUser(APIView):
             user = User.objects.get(username=username)
         except User.DoesNotExist:
             raise NotFound
-        serializer = serializers.PrivateUserSerializer(user)
+        serializer = serializers.PublicUserSerializer(user)
+        return Response(serializer.data)
+
+
+class UserRooms(APIView):
+    def get(self, request, username):
+        all_rooms = Room.objects.filter(owner__username=username)
+        serializer = RoomListSerializer(
+            all_rooms,
+            many=True,
+            context={"request": request},
+        )
+        return Response(serializer.data)
+
+
+class UserReviews(APIView):
+    def get(self, request, username):
+        all_reviews = Review.objects.filter(user__username=username)
+        serializer = ReviewSerializer(
+            all_reviews,
+            many=True,
+        )
         return Response(serializer.data)
 
 
