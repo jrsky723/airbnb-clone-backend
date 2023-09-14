@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.utils import timezone
-from rest_framework.views import APIView
 from django.db import transaction
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import (
     NotFound,
@@ -86,7 +86,7 @@ class Rooms(APIView):
                 raise ParseError("Category is required")
             try:
                 category = Category.objects.get(pk=category_pk)
-                if category.kind == Category.CategoryKingChoices.EXPERIENCES:
+                if category.kind == Category.CategoryKindChoices.EXPERIENCES:
                     raise ParseError("The category kind should be rooms")
             except Category.DoesNotExist:
                 raise ParseError("Category not found")
@@ -100,11 +100,15 @@ class Rooms(APIView):
                     for amenity_pk in amenities:
                         amenity = Amenity.objects.get(pk=amenity_pk)
                         room.amenities.add(amenity)
-                    serializer = serializers.RoomDetailSerializer(room)
+                    serializer = serializers.RoomDetailSerializer(
+                        data=room,
+                        context={"request": request},
+                    )
                     return Response(serializer.data)
-            except Exception:
+            except Amenity.DoesNotExist:
                 raise ParseError("Amenities not found")
-
+            except Exception as e:
+                raise ParseError(e)
         else:
             return Response(serializer.errors)
 
