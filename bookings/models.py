@@ -44,6 +44,10 @@ class Booking(CommonModel):
         null=True,
         blank=True,
     )
+    experience_duration = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+    )
     guests = models.PositiveIntegerField()
 
     def __str__(self) -> str:

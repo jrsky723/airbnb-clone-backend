@@ -9,6 +9,11 @@ from rest_framework import permissions
 from .models import Perk, Experience
 from . import serializers
 from categories.models import Category
+from bookings.models import Booking
+from bookings.serializers import (
+    PublicExperienceBookingSerializer,
+    CreateExperienceBookingSerializer,
+)
 
 
 class Experiences(APIView):
@@ -199,3 +204,38 @@ class ExperiencePerks(APIView):
             many=True,
         )
         return Response(serializer.data)
+
+
+class ExperienceBookings(APIView):
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_object(self, pk):
+        try:
+            return Experience.objects.get(pk=pk)
+        except:
+            raise exceptions.NotFound
+
+    def get(self, request, pk):
+        experience = self.get_object(pk)
+        now = timezone.localtime(timezone.now())
+        booking = Booking.objects.filter(
+            experience=experience,
+            kind=Booking.BookingKindChoices.EXPERIENCE,
+            experience_time__gte=now,
+        )
+        serializer = PublicExperienceBookingSerializer(booking, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, pk):
+        experience = self.get_object(pk)
+        serializer = CreateExperienceBookingSerializer(data=request.data)
+        if serializer.is_valid():
+            booking = serializer.save(
+                experience=experience,
+                user=request.user,
+                kind=Booking.BookingKindChoices.EXPERIENCE,
+            )
+            serializer = PublicExperienceBookingSerializer(booking)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)

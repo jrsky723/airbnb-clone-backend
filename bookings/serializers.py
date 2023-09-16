@@ -40,13 +40,60 @@ class CreateRoomBookingSerializer(serializers.ModelSerializer):
         return data
 
 
-class PublicBookingSerializer(serializers.ModelSerializer):
+class CreateExperienceBookingSerializer(serializers.ModelSerializer):
+    experience_time = serializers.DateTimeField()
+    experience_duration = serializers.IntegerField()
+
+    class Meta:
+        model = Booking
+        fields = (
+            "experience_time",
+            "experience_duration",
+            "guests",
+        )
+
+    def validate_experience_time(self, value):
+        now = timezone.localtime(timezone.now())
+        if now > value:
+            raise serializers.ValidationError("Cat't book in the past!")
+        return value
+
+    def validate_experience_duration(self, value):
+        if value < 1:
+            raise serializers.ValidationError("Duration should be greater than 0")
+        if value > 24:
+            raise serializers.ValidationError("Duration should be less than 24")
+        return value
+
+    def validate(self, data):
+        if Booking.objects.filter(
+            experience_time__lte=data["experience_time"]
+            + timezone.timedelta(hours=data["experience_duration"]),
+            experience_time__gte=data["experience_time"],
+        ).exists():
+            raise serializers.ValidationError(
+                "Those (or some of) dates are already taken."
+            )
+        return data
+
+
+class PublicRoomBookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = (
             "pk",
             "check_in",
             "check_out",
+            "guests",
+        )
+
+
+class PublicExperienceBookingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Booking
+        fields = (
+            "pk",
             "experience_time",
+            "experience_duration",
             "guests",
         )
