@@ -175,3 +175,27 @@ class PerkDetail(APIView):
         perk = self.get_object(pk)
         perk.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ExperiencePerks(APIView):
+    def get_object(self, pk):
+        try:
+            return Experience.objects.get(pk=pk)
+        except Experience.DoesNotExist:
+            raise exceptions.NotFound
+
+    def get(self, request, pk):
+        try:
+            page = request.query_params.get("page", 1)
+            page = int(page)
+        except ValueError:
+            page = 1
+        page_size = settings.PAGE_SIZE
+        start = (page - 1) * page_size
+        end = page * page_size
+        experience = self.get_object(pk)
+        serializer = serializers.PerkSerializer(
+            experience.perks.all()[start:end],
+            many=True,
+        )
+        return Response(serializer.data)
