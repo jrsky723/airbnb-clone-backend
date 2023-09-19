@@ -10,7 +10,7 @@ from rest_framework.exceptions import (
     PermissionDenied,
 )
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.status import HTTP_204_NO_CONTENT
+from rest_framework.status import HTTP_204_NO_CONTENT, HTTP_400_BAD_REQUEST
 from .models import Amenity, Room
 from categories.models import Category
 from . import serializers
@@ -35,7 +35,7 @@ class Amenities(APIView):
             amenity = serializer.save()
             return Response(data=serializers.AmenitySerializer(amenity).data)
         else:
-            return Response(data=serializer.errors)
+            return Response(data=serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 class AmenityDetail(APIView):
