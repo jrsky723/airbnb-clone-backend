@@ -1,5 +1,5 @@
 from rest_framework.test import APITestCase
-from . import models
+from rooms import models
 
 
 class TestAmenities(APITestCase):
@@ -42,6 +42,7 @@ class TestAmenities(APITestCase):
     def test_create_amenity(self):
         new_amenity_name = "New Amenity"
         new_amenity_desc = "New Amenity Description"
+        invalid_name = "A" * 151
 
         response = self.client.post(
             self.URL,
@@ -71,3 +72,15 @@ class TestAmenities(APITestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertIn("name", data)
+
+        # invalid name
+        response = self.client.post(
+            self.URL,
+            data={
+                "name": invalid_name,
+                "description": new_amenity_desc,
+            },
+        )
+        self.assertIn("name", data)
+        self.assertNotIn("description", data)
+        self.assertEqual(response.status_code, 400)
