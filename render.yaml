@@ -3,9 +3,11 @@ databases:
     databaseName: airbnbclone
     user: airbnbclone
     region: singapore
+    plan: free
 
 services:
   - type: web
+    plan: free
     name: airbnbclone
     runtime: python
     region: singapore
