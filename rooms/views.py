@@ -83,6 +83,7 @@ class Rooms(APIView):
 
     def post(self, request):
         serializer = serializers.RoomDetailSerializer(data=request.data)
+        print(request.data)
         if serializer.is_valid():
             category_pk = request.data.get("category")
             if not category_pk:
@@ -99,12 +100,13 @@ class Rooms(APIView):
                         owner=request.user,
                         category=category,
                     )
+
                     amenities = request.data.get("amenities")
                     for amenity_pk in amenities:
                         amenity = Amenity.objects.get(pk=amenity_pk)
                         room.amenities.add(amenity)
                     serializer = serializers.RoomDetailSerializer(
-                        data=room,
+                        room,
                         context={"request": request},
                     )
                     return Response(serializer.data)
